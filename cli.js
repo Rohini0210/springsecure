@@ -17,7 +17,7 @@ const program = new Command();
 program
     .name('springsecure')
     .description('CLI tool for detecting mass assignment vulnerabilities in Spring Boot applications')
-    .version('1.0.0');
+    .version('1.0.1');
 
 program
     .argument('[path]', 'File or directory to scan', '.')
@@ -28,6 +28,7 @@ program
     .option('--text', 'Output as text (shorthand for -f text)')
     .option('--fail-on-high', 'Exit with error code if high severity issues found', false)
     .option('--fail-on-medium', 'Exit with error code if medium+ severity issues found', false)
+    .option('--url <url>', 'Base URL of a running instance (e.g. http://localhost:8080) to dynamically verify R-01 findings')
     .action(async (targetPath, options) => {
         try {
             await runScan(targetPath, options);
@@ -104,6 +105,23 @@ async function runScan(targetPath, options) {
 
         const vulnerabilities = detectVulnerabilities(fileResult.content, file);
         allVulnerabilities.push(...vulnerabilities);
+    }
+
+    // Dynamic verification (opt-in): test R-01 candidates against a running
+    // instance. Each tested finding gains a `dynamic` field:
+    // { outcome: 'confirmed' | 'not-exploitable' | 'inconclusive', status, evidence }.
+    // Candidates with no endpoint metadata, failed requests, or 401 responses
+    // are recorded as 'inconclusive', never as 'not-exploitable'.
+    if (options.url) {
+        const { verifyVulnerabilities } = require('./dynamic-scanner');
+        const dynamicResults = await verifyVulnerabilities(allVulnerabilities, options.url);
+        for (const result of dynamicResults) {
+            const target = allVulnerabilities.find(v =>
+                v.file === result.file && v.line === result.line && v.type === result.type);
+            if (target) {
+                target.dynamic = result.dynamicValidation;
+            }
+        }
     }
 
     // Format and display results

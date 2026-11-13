@@ -59,19 +59,6 @@ function checkLombokAnnotationsAST(code, filename) {
                     cwe: 'CWE-915'
                 });
             }
-            
-            // Check for @AllArgsConstructor
-            if (classAnnotations.some(ann => ann === 'AllArgsConstructor' || ann === 'lombok.AllArgsConstructor')) {
-                vulnerabilities.push({
-                    type: 'Lombok @AllArgsConstructor on Entity',
-                    severity: 'LOW',
-                    description: `Entity class '${className}' uses @AllArgsConstructor which may be exploited in combination with other patterns.`,
-                    line: getLineNumber(classNode),
-                    recommendation: 'Consider using @RequiredArgsConstructor or custom constructors.',
-                    file: filename,
-                    cwe: 'CWE-915'
-                });
-            }
         }
     }
     

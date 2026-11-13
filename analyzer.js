@@ -8,7 +8,48 @@ const {
     checkControllerBindingsAST
 } = require('./ast-detectors');
 
+
+/**
+ * Replace Java comment content with spaces, preserving line numbering and
+ * string literals. Prevents annotation patterns inside commented-out code
+ * from being matched as live declarations.
+ */
+function stripJavaComments(code) {
+    let out = '';
+    let i = 0;
+    const n = code.length;
+    let state = 'code'; // code | line | block | str | chr
+    while (i < n) {
+        const c = code[i], d = code[i + 1];
+        if (state === 'code') {
+            if (c === '/' && d === '/') { state = 'line'; out += '  '; i += 2; continue; }
+            if (c === '/' && d === '*') { state = 'block'; out += '  '; i += 2; continue; }
+            if (c === '"') { state = 'str'; out += c; i++; continue; }
+            if (c === "'") { state = 'chr'; out += c; i++; continue; }
+            out += c; i++; continue;
+        }
+        if (state === 'line') {
+            if (c === '\n') { state = 'code'; out += c; i++; continue; }
+            out += ' '; i++; continue;
+        }
+        if (state === 'block') {
+            if (c === '*' && d === '/') { state = 'code'; out += '  '; i += 2; continue; }
+            out += (c === '\n') ? c : ' '; i++; continue;
+        }
+        if (state === 'str' || state === 'chr') {
+            out += c;
+            if (c === '\\') { if (i + 1 < n) { out += code[i + 1]; i += 2; continue; } }
+            if ((state === 'str' && c === '"') || (state === 'chr' && c === "'")) {
+                if (out.length > 1) state = 'code';
+            }
+            i++; continue;
+        }
+    }
+    return out;
+}
+
 function detectVulnerabilities(code, filename = '') {
+    code = stripJavaComments(code);
     const vulnerabilities = [];
     const ext = filename.toLowerCase();
 
@@ -238,7 +279,8 @@ function checkJpaRelationships(code, filename) {
 
     lines.forEach((line, idx) => {
         // Check for cascade = CascadeType.ALL on relationships
-        if ((line.includes('@OneToMany') || line.includes('@ManyToMany')) &&
+        if ((line.includes('@OneToMany') || line.includes('@ManyToMany') ||
+             line.includes('@ManyToOne') || line.includes('@OneToOne')) &&
             line.includes('cascade') && line.includes('CascadeType.ALL')) {
             vulnerabilities.push({
                 type: 'Dangerous JPA Cascade Configuration',

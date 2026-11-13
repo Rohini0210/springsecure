@@ -50,6 +50,13 @@ function formatConsole(results, options = {}) {
             console.log(`\n   ${idx + 1}. ${severityColor.bold(vuln.severity)} - ${chalk.bold(vuln.type)}`);
             console.log(`      ${chalk.gray('Line:')} ${vuln.line}`);
             console.log(`      ${chalk.gray('Issue:')} ${vuln.description}`);
+            if (vuln.dynamic) {
+                const dynColor = vuln.dynamic.outcome === 'confirmed' ? chalk.red :
+                    vuln.dynamic.outcome === 'inconclusive' ? chalk.yellow : chalk.green;
+                console.log(`      ${chalk.gray('Dynamic:')} ${dynColor.bold(vuln.dynamic.outcome)}` +
+                    (vuln.dynamic.status ? ` (HTTP ${vuln.dynamic.status})` : '') +
+                    ` — ${vuln.dynamic.evidence || ''}`);
+            }
             
             if (verbose) {
                 console.log(`      ${chalk.green('Fix:')} ${vuln.recommendation}`);

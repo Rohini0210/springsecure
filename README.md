@@ -1,11 +1,12 @@
-# SpringSecure CLI
+# SpringSecure CLI — v1.0.1
 
 A command-line tool for detecting mass assignment vulnerabilities in Spring Boot applications.
 
 ## Features
 
 - 🔍 **AST-Based Analysis** - Uses java-parser for accurate Abstract Syntax Tree parsing
-- 🎯 **10 Vulnerability Types** - Detects mass assignment vulnerabilities with CWE classifications
+- 🎯 **7-Rule Library (R-01–R-07)** - Detects mass assignment vulnerabilities with CWE classifications, matching Table 3 of the accompanying paper
+- ⚡ **Dynamic Verification** - Optionally tests R-01 findings against a running instance (`--url`); response-reflection based only (see below)
 - 📊 **Multiple Output Formats** - Console, JSON, and text reports
 - 🌐 **GitHub Repository Scanning** - Scan any public GitHub repository automatically
 - 🚀 **Fast Scanning** - Recursively scan entire projects
@@ -43,6 +44,38 @@ node cli.js path/to/spring-project
 node cli.js https://github.com/username/spring-boot-project
 ```
 
+### Dynamic Verification
+
+Test R-01 (direct entity binding) findings against a running instance of the
+application:
+
+```bash
+node cli.js path/to/spring-project --url http://localhost:8080 -f json -o report.json
+```
+
+Each tested finding gains a `dynamic` field in the JSON report:
+
+```json
+{ "outcome": "confirmed | not-exploitable | inconclusive", "status": 200, "evidence": "..." }
+```
+
+- `confirmed` — the response reflected the injected sensitive fields.
+- `not-exploitable` — the request completed and the response did not reflect them.
+- `inconclusive` — the request could not be completed (connection error /
+  timeout), the server returned HTTP 401, or the finding has no endpoint
+  metadata. Inconclusive is never recorded as not-exploitable: it means the
+  check could not be run, not that the endpoint is safe.
+
+Confirmation is response-reflection based only, using a fixed injection
+payload (`{ isAdmin: true, role: "ADMIN", balance: 1000000, id: 99999 }`).
+The scanner does not parse OpenAPI specifications, does not perform a
+follow-up GET oracle, and does not compute a divergence measure (see
+Limitations).
+
+For a repeatable, isolated run, see `scripts/scan-isolated.sh`, which
+starts a disposable stack (`docker-compose.yml`), scans it, then destroys
+the stack and its volumes.
+
 ### Output Formats
 
 **Console output (default):**
@@ -77,6 +110,7 @@ Options:
   --text                 Output as text (shorthand for -f text)
   --fail-on-high         Exit with error code if high severity issues found
   --fail-on-medium       Exit with error code if medium+ severity issues found
+  --url <url>            Base URL of a running instance to dynamically verify R-01 findings
   -h, --help             display help for command
 ```
 
@@ -92,52 +126,78 @@ node cli.js src/ --fail-on-high
 node cli.js src/ --fail-on-medium --json -o security-report.json
 ```
 
-## Detected Vulnerabilities
+Note: gating is based on static severity counts only (HIGH / MEDIUM). There
+is no CRITICAL severity in this version, and dynamic confirmation does not
+change the exit code.
+
+### Tests
+
+```bash
+npm test
+```
+
+Runs the integration tests in `tests/` (Node's built-in test runner, no
+extra dependencies): static scan of a vulnerable and a clean fixture,
+`--fail-on-high` / `--fail-on-medium` exit codes, the commented-out
+`@RequestBody` regression case, and dynamic-verification outcomes.
+
+## Detected Vulnerabilities — the 7-rule library
+
+These seven rules (R-01–R-07) are the rule library described in Table 3 of
+the paper. R-06 is specified but not implemented in v1.0.1 (see Limitations).
 
 ### HIGH Severity
 
-1. **Lombok @Data on Entity** (CWE-915)
-   - Entity classes using `@Data` annotation
-   - Generates public setters for all fields including sensitive ones
-
-2. **Direct Entity Binding in Controller** (CWE-915)
+1. **R-01 Direct Entity Binding in Controller** (CWE-915)
    - Controllers binding `@RequestBody` directly to entity classes
    - Missing DTO layer protection
 
-3. **Sensitive Field Without @JsonIgnore** (CWE-200)
-   - Sensitive fields (password, token, secret) exposed in API responses
-   - Missing @JsonIgnore annotation
+2. **R-02 Lombok @Data on Entity** (CWE-915)
+   - Entity classes using `@Data` annotation
+   - Generates public setters for all fields including sensitive ones
 
-4. **Public Setter on Sensitive Field** (CWE-915)
-   - Public setters on fields like role, isAdmin, balance
-   - Can be exploited via mass assignment
+3. **R-03 Sensitive Field Without @JsonIgnore / Public Setter on Sensitive Field** (CWE-200 / CWE-915)
+   - Sensitive fields exposed in API responses (missing `@JsonIgnore`)
+   - Public setters on sensitive fields such as role, isAdmin, balance
 
 ### MEDIUM Severity
 
-5. **Unsafe Jackson Deserialization** (CWE-915)
-   - `fail-on-unknown-properties: false` in configuration
-   - Allows arbitrary property binding
-
-6. **Missing Input Validation** (CWE-20)
+4. **R-04 Missing Input Validation** (CWE-20)
    - `@RequestBody` without `@Valid` annotation
    - No validation on incoming data
 
-7. **Lombok @Setter on Entity** (CWE-915)
-   - Entity classes using `@Setter` annotation
-   - May expose fields to mass assignment
-
-8. **Dangerous JPA Cascade Configuration** (CWE-915)
-   - Using `CascadeType.ALL` on relationships
+5. **R-05 Dangerous JPA Cascade Configuration** (CWE-915)
+   - Using `CascadeType.ALL` on relationships (`@OneToMany`, `@ManyToMany`,
+     `@ManyToOne`, `@OneToOne`)
    - Can lead to unintended data modifications
 
-### LOW Severity
+6. **R-06 Copy-based service-layer update** — specified in Table 3, **not
+   implemented** in v1.0.1 (see Limitations)
 
-9. **Unsafe Orphan Removal** (CWE-915)
-   - `orphanRemoval=true` without lifecycle callbacks
-   - May lead to unintended deletions
+7. **R-07 Unsafe Jackson Configuration** (CWE-915)
+   - `fail-on-unknown-properties: false` in configuration
+   - Allows arbitrary property binding
 
-10. **Permissive MVC Configuration** (CWE-755)
-    - Silently ignoring missing handlers
+### Sensitivity lists (as implemented)
+
+There is no `config/sensitivity.json` and no `--sensitivity-config` flag.
+Sensitivity is two hard-coded lists in `analyzer.js`:
+
+- **`@JsonIgnore` check** — a `private` field whose name is one of
+  `password`, `token`, `secret`, `apiKey`, `privateKey`, `salt` and whose
+  preceding line lacks `@JsonIgnore`. (The AST variant of this check
+  additionally matches `hash`.)
+- **Setter check** — an explicit `public void set<Field>` in source for a
+  field named one of `role`, `permission`, `isAdmin`, `isActive`, `balance`,
+  `credit`, `creditLimit`. Lombok-generated setters do not appear in source
+  and are therefore invisible to this check.
+
+### Auxiliary checks (not part of the 7-rule library)
+
+The scanner also reports a small number of configuration checks that are
+not rules R-01–R-07: Lombok `@Setter` on an entity, unsafe orphan removal,
+and permissive MVC configuration. They are reported with their own type
+names and are not counted in the paper's per-rule evaluation.
 
 ## Examples
 
@@ -157,6 +217,12 @@ node cli.js ./src --json -o security-report.json --fail-on-high
 
 ```bash
 node cli.js ./src/main/java/com/example/UserController.java -v
+```
+
+### Example 4: Scan with dynamic verification
+
+```bash
+node cli.js ./src --url http://localhost:8080 --json -o security-report.json
 ```
 
 ## Sample Output
@@ -188,7 +254,38 @@ Summary:
 ───────────────────────────────────────────────────────
 ```
 
+## Limitations (v1.0.1)
+
+- **R-06 is specified in Table 3 but not implemented in v1.0.1.** The tool
+  performs no copy-based service-layer update detection (`copyProperties` /
+  `BeanUtils` or equivalent); R-06 findings are therefore never reported.
+  Service-layer vulnerabilities that do not surface as controller-level
+  R-01 findings are outside the current detection scope.
+- **Dynamic verification is response-reflection based only.** The dynamic
+  scanner does not parse OpenAPI specifications, does not perform a
+  follow-up GET oracle, and does not compute the divergence measure. A
+  confirmed outcome means the injected values were reflected in the HTTP
+  response; it is not, by itself, proof of a committed database change.
+  Conversely, a non-reflected response does not prove the database was
+  untouched. Outcomes that could not be evaluated (connection error,
+  timeout, HTTP 401, or missing endpoint metadata) are recorded as
+  `inconclusive`, not as cleared findings.
+- **R-01 only matches a hard-coded entity list** (`User`, `Account`,
+  `Order`, `Product`, `Customer`, `Payment`, `Transaction`). Entities
+  outside that list are missed.
+- **Comment stripping is lexical.** The parser strips `//` and `/* */`
+  comments before matching; annotations inside comments no longer produce
+  findings.
+- **Benchmarks and results are not bundled.** `benchmarks/` and `results/`
+  contain only README files explaining what belongs there; the benchmark
+  applications (CVA, SCA, SRA) and their scan reports are not part of this
+  release.
+- **Docker was not available on the machine that prepared this release**,
+  so `docker compose up` for the disposable-environment example was not
+  executed there; `docker-compose.yml` was validated for YAML syntax only
+  and `scripts/scan-isolated.sh` exits with a clear error when Docker is
+  absent.
+
 ## License
 
 MIT
-

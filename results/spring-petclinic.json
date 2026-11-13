@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-11-13T01:13:14.265Z",
+  "summary": {
+    "high": 0,
+    "medium": 2,
+    "low": 0,
+    "total": 2
+  },
+  "vulnerabilities": [
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 56,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/petclinic/src/main/java/org/springframework/samples/petclinic/owner/Pet.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 67,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/petclinic/src/main/java/org/springframework/samples/petclinic/owner/Owner.java",
+      "cwe": "CWE-915"
+    }
+  ]
+}

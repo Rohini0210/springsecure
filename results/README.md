@@ -1,17 +1,41 @@
 # results/
 
-Placeholder — no scan reports are included in this release, and none has
-been fabricated.
+This directory holds JSON scan reports produced by the tool behind the
+paper's tables, plus the notes that say exactly how each file was produced.
+Read `RESULTS_README.md` before using these files.
 
-This directory holds the JSON reports produced by the tool behind the
-paper's tables:
+## What is here
 
-- `scan-<project>.json` — the `node cli.js <project> -f json -o ...` output
-  for each evaluated project (CVA, SCA, SRA, JWT-INV, spring-petclinic,
-  piggymetrics), produced on the machine the paper reports.
-- The summary counts in the paper's Tables 6 and 7 are derived from these
-  files; a report whose numbers do not match the paper indicates the scan
-  was run with a different tool version or on different code.
+| File | Contents |
+|---|---|
+| `jwt-inv.json` | Scan of JWT-INV — 16 findings (see note below). |
+| `spring-petclinic.json` | Scan of spring-petclinic — 2 findings. |
+| `piggymetrics.json` | Scan of piggymetrics — 5 findings. |
+| `RESULTS_README.md` | Provenance: what was run, where, and what matches the paper. |
+| `MEASUREMENT_REPORT.md` | Full run detail (environment, commands, per-run counts). |
+
+Finding counts match the paper's reference measurements exactly
+(16 / 2 / 5). The JSONs contain no timing fields.
+
+## Important caveats
+
+- These three reports are **container re-runs** (Linux container, Node.js
+  v24), not the i7/Ubuntu outputs behind Table 6 of the paper. Absolute
+  times and memory from the container runs are not in these files and must
+  not be quoted as the paper's Table 6 values.
+- They were produced with the patched tool **before** release v1.0.1 removed
+  the undocumented 8th rule, so `jwt-inv.json` has 16 findings including the
+  8th-rule LOW that v1.0.1 removes (15 findings). See `RESULTS_README.md`.
+
+## What is still missing
+
+- `scan-CVA.json`, `scan-SCA.json`, `scan-SRA.json` — the benchmark scan
+  reports. They need the benchmark applications in `benchmarks/` (not in
+  this repository) and a run on the machine the paper reports.
+- The naming convention for reports added later is `scan-<project>.json`
+  (see the `node cli.js <project> -f json -o ...` output). The three files
+  above keep their original names because `RESULTS_README.md` refers to
+  them by those names.
 
 Generate a report with, for example:
 

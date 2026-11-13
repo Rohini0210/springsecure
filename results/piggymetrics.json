@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-11-13T01:13:13.936Z",
+  "summary": {
+    "high": 5,
+    "medium": 0,
+    "low": 0,
+    "total": 5
+  },
+  "vulnerabilities": [
+    {
+      "type": "Sensitive Field Without @JsonIgnore",
+      "severity": "HIGH",
+      "description": "Sensitive field 'password' is not marked with @JsonIgnore and may be exposed in API responses.",
+      "line": 16,
+      "recommendation": "Add @JsonIgnore annotation above the password field to prevent serialization.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/auth-service/src/main/java/com/piggymetrics/auth/domain/User.java",
+      "cwe": "CWE-200"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'User' without DTO layer. This allows clients to modify any field.",
+      "line": 29,
+      "recommendation": "Create a UserDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/auth-service/src/main/java/com/piggymetrics/auth/controller/UserController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'Account' without DTO layer. This allows clients to modify any field.",
+      "line": 31,
+      "recommendation": "Create a AccountDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/account-service/src/main/java/com/piggymetrics/account/controller/AccountController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'User' without DTO layer. This allows clients to modify any field.",
+      "line": 36,
+      "recommendation": "Create a UserDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/account-service/src/main/java/com/piggymetrics/account/controller/AccountController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'Account' without DTO layer. This allows clients to modify any field.",
+      "line": 33,
+      "recommendation": "Create a AccountDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/statistics-service/src/main/java/com/piggymetrics/statistics/controller/StatisticsController.java",
+      "cwe": "CWE-915"
+    }
+  ]
+}

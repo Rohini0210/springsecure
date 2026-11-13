@@ -1,0 +1,155 @@
+{
+  "timestamp": "2026-11-13T01:13:01.741Z",
+  "summary": {
+    "high": 5,
+    "medium": 10,
+    "low": 1,
+    "total": 16
+  },
+  "vulnerabilities": [
+    {
+      "type": "Lombok @Data on Entity",
+      "severity": "HIGH",
+      "description": "Entity class 'User' uses @Data annotation which generates public setters for all fields, including sensitive ones like roles, permissions, and internal state.",
+      "line": 27,
+      "recommendation": "Replace @Data with @Getter and use @Setter only on safe fields. Consider using DTOs for API boundaries.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/User.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Lombok @AllArgsConstructor on Entity",
+      "severity": "LOW",
+      "description": "Entity class 'User' uses @AllArgsConstructor which may be exploited in combination with other patterns.",
+      "line": 27,
+      "recommendation": "Consider using @RequiredArgsConstructor or custom constructors.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/User.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Sensitive Field Without @JsonIgnore",
+      "severity": "HIGH",
+      "description": "Sensitive field 'password' in entity 'User' is not marked with @JsonIgnore and may be exposed in API responses.",
+      "line": 33,
+      "recommendation": "Add @JsonIgnore annotation above the password field to prevent serialization.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/User.java",
+      "cwe": "CWE-200"
+    },
+    {
+      "type": "Sensitive Field Without @JsonIgnore",
+      "severity": "HIGH",
+      "description": "Sensitive field 'password' in entity 'Supplier' is not marked with @JsonIgnore and may be exposed in API responses.",
+      "line": 20,
+      "recommendation": "Add @JsonIgnore annotation above the password field to prevent serialization.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/Supplier.java",
+      "cwe": "CWE-200"
+    },
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 22,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/Supplier.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 30,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/Product.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 43,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/Product.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Dangerous JPA Cascade Configuration",
+      "severity": "MEDIUM",
+      "description": "Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.",
+      "line": 29,
+      "recommendation": "Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/Order.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 35,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/WarehouseController.java",
+      "cwe": "CWE-20"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'Product' without DTO layer. This allows clients to modify any field.",
+      "line": 41,
+      "recommendation": "Create a ProductDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/ProductController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 41,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/ProductController.java",
+      "cwe": "CWE-20"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'Order' without DTO layer. This allows clients to modify any field.",
+      "line": 36,
+      "recommendation": "Create a OrderDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/OrderController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 36,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/OrderController.java",
+      "cwe": "CWE-20"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 35,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/AuthenticationController.java",
+      "cwe": "CWE-20"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 40,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/AuthenticationController.java",
+      "cwe": "CWE-20"
+    },
+    {
+      "type": "Missing Input Validation",
+      "severity": "MEDIUM",
+      "description": "Request body parameter lacks validation annotations.",
+      "line": 69,
+      "recommendation": "Add @Valid or @Validated annotation and use Bean Validation constraints.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/controller/AuthenticationController.java",
+      "cwe": "CWE-20"
+    }
+  ]
+}

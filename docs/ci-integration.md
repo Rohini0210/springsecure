@@ -31,6 +31,20 @@ and that a HIGH gate includes CRITICAL. That is the specified behaviour;
 the implemented gate above is static-severity-driven, and gating on the
 dynamic result G(e) is next-step work, not implemented.
 
+Specified exit codes by highest grade present (paper §6.3):
+
+| Highest grade present | no flag | `--fail-on-medium` | `--fail-on-high` |
+|---|---|---|---|
+| LOW | 0 | 0 | 0 |
+| MEDIUM | 0 | 1 | 0 |
+| HIGH | 0 | 1 | 1 |
+| CRITICAL | 0 | 1 | 1 |
+
+CRITICAL is a specified grade (a dynamically confirmed finding at or above
+the threshold); the code has no CRITICAL severity, so the CRITICAL row is
+the specified behaviour, while the implemented gate counts static severity
+only, as above.
+
 ## CI workflow (paper §6.3)
 
 ```yaml

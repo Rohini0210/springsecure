@@ -46,19 +46,6 @@ function checkLombokAnnotationsAST(code, filename) {
                     cwe: 'CWE-915'
                 });
             }
-            
-            // Check for @Setter
-            if (classAnnotations.some(ann => ann === 'Setter' || ann === 'lombok.Setter')) {
-                vulnerabilities.push({
-                    type: 'Lombok @Setter on Entity',
-                    severity: 'MEDIUM',
-                    description: `Entity class '${className}' uses @Setter annotation which may expose fields to mass assignment.`,
-                    line: getLineNumber(classNode),
-                    recommendation: 'Use @Setter only on specific safe fields, not at class level.',
-                    file: filename,
-                    cwe: 'CWE-915'
-                });
-            }
         }
     }
     

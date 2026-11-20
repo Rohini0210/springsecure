@@ -106,9 +106,6 @@ function checkLombokAnnotations(code, filename) {
 
     let hasEntity = false;
     let hasData = false;
-    let hasSetter = false;
-    let hasAllArgsConstructor = false;
-    let hasNoArgsConstructor = false;
 
     lines.forEach((line, idx) => {
         if (line.includes('@Entity') || line.includes('@Document')) {
@@ -128,38 +125,7 @@ function checkLombokAnnotations(code, filename) {
                 });
             }
         }
-        if (line.includes('@Setter') && hasEntity) {
-            hasSetter = true;
-            vulnerabilities.push({
-                type: 'Lombok @Setter on Entity',
-                severity: 'MEDIUM',
-                description: 'Entity class uses @Setter which may expose fields to mass assignment attacks.',
-                line: idx + 1,
-                recommendation: 'Use @Setter only on specific safe fields, or use DTOs for data transfer.',
-                file: filename,
-                cwe: 'CWE-915'
-            });
-        }
-        if (line.includes('@AllArgsConstructor') && hasEntity) {
-            hasAllArgsConstructor = true;
-        }
-        if (line.includes('@NoArgsConstructor') && hasEntity) {
-            hasNoArgsConstructor = true;
-        }
     });
-
-    // Check for dangerous combinations
-    if (hasEntity && hasAllArgsConstructor && hasNoArgsConstructor) {
-        vulnerabilities.push({
-            type: 'Dangerous Lombok Constructor Combination',
-            severity: 'MEDIUM',
-            description: 'Entity has both @AllArgsConstructor and @NoArgsConstructor which can be exploited with reflection.',
-            line: findLineNumber(code, '@AllArgsConstructor'),
-            recommendation: 'Use @RequiredArgsConstructor with @NonNull on required fields only.',
-            file: filename,
-            cwe: 'CWE-915'
-        });
-    }
 
     return vulnerabilities;
 }
@@ -289,19 +255,6 @@ function checkJpaRelationships(code, filename) {
                 description: 'Relationship uses CascadeType.ALL which can lead to unintended data modifications through mass assignment.',
                 line: idx + 1,
                 recommendation: 'Use specific cascade types (PERSIST, MERGE) instead of ALL. Handle deletions explicitly.',
-                file: filename,
-                cwe: 'CWE-915'
-            });
-        }
-
-        // Check for orphanRemoval without proper safeguards
-        if (line.includes('orphanRemoval = true') && !code.includes('@PreRemove')) {
-            vulnerabilities.push({
-                type: 'Unsafe Orphan Removal',
-                severity: 'LOW',
-                description: 'orphanRemoval=true without lifecycle callbacks may lead to unintended deletions.',
-                line: idx + 1,
-                recommendation: 'Add @PreRemove lifecycle callback to validate deletions.',
                 file: filename,
                 cwe: 'CWE-915'
             });
@@ -486,19 +439,6 @@ function analyzeYamlFile(code, filename) {
             recommendation: 'Set fail-on-ignored-properties to true.',
             file: filename,
             cwe: 'CWE-915'
-        });
-    }
-
-    // Check for permissive MVC configuration
-    if (code.includes('throw-exception-if-no-handler-found: false')) {
-        vulnerabilities.push({
-            type: 'Permissive MVC Configuration',
-            severity: 'LOW',
-            description: 'MVC configured to silently ignore missing handlers.',
-            line: findLineNumber(code, 'throw-exception-if-no-handler-found'),
-            recommendation: 'Enable exception throwing for missing handlers.',
-            file: filename,
-            cwe: 'CWE-755'
         });
     }
 

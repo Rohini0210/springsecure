@@ -1,6 +1,6 @@
 # Documentation — material cut from the paper
 
-The journal paper (SoftwareX, 12 pages) is short by design. This folder
+The journal paper (SoftwareX, 10 pages) is short by design. This folder
 preserves the material that was cut from it for length during the Round 2
 revision, so it is not lost. Everything here is copied verbatim from the
 pre-cut manuscript (`Revised_SoftwareX_MAV_R1_Fixed.docx`) or from the tool
@@ -14,6 +14,7 @@ source in this repository — nothing is reconstructed from memory.
 | `web-interface.md` | The web interface screenshot (paper Fig. 6) and what the web version is. |
 | `architecture.md` | The AST data structure (paper Table 2), the DynamicFuzz pseudocode, and the sensitivity lists as implemented. |
 | `parser-coverage.md` | Parser construct coverage (paper Table 2) and the regression fixtures in `tests/fixtures/`. |
+| `listings.md` | The four code listings moved out of the paper for the word limit: the sensitivity lists and injection dictionary (§4.4), the insecure/secure binding example (§4.5), and the CI workflow fragment (§6.3). |
 | `ci-integration.md` | CLI exit-code behaviour, the CI/CD workflow, and the integration tests that cover it. |
 
 ## A note on status

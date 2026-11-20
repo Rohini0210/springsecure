@@ -92,6 +92,7 @@ function analyzeJavaFile(code, filename) {
     // Always run these checks (not yet implemented in AST)
     vulnerabilities.push(...checkJpaRelationships(code, filename));
     vulnerabilities.push(...checkSensitiveFieldSetters(code, filename));
+    vulnerabilities.push(...checkServiceLayerPersistence(code, filename));
 
     return vulnerabilities;
 }
@@ -306,6 +307,125 @@ function checkJpaRelationships(code, filename) {
             });
         }
     });
+
+    return vulnerabilities;
+}
+
+/**
+ * Check for unfiltered service-layer persistence (R-06).
+ *
+ * Rule: in a @Service class, a method that takes an object as a parameter and
+ * passes that parameter straight to a repository save/persist call persists
+ * whatever the caller supplied, with no validation or field filtering in
+ * between. That is the service-layer mass-assignment path.
+ *
+ * What counts as "unfiltered": the save argument is the parameter itself. A
+ * method that checks one field (a null check, hashing the password, setting one
+ * server-controlled field) and then saves the parameter is still unfiltered —
+ * every other field the caller supplied is persisted as-is. Only the patterns
+ * that do NOT pass the parameter to the save are safe: building the entity
+ * locally from a DTO, or copying an allowlist of fields onto an entity loaded
+ * from the database and saving that. Those are excluded by construction, because
+ * the save argument is a local variable, not the parameter.
+ * A @Valid annotation on the parameter suppresses the finding, matching how the
+ * codebase treats @Valid as validated input elsewhere (R-04).
+ * One finding per method, reported at the save line (this matches the reference
+ * set, which records one R-06 instance per service method, at the save call).
+ * saveAll() is deliberately not covered: it takes a collection, and deciding
+ * whether a collection was filtered needs data-flow this line scanner cannot do.
+ * Multi-line method signatures are not matched either.
+ */
+function checkServiceLayerPersistence(code, filename) {
+    const vulnerabilities = [];
+    const lines = code.split('\n');
+    const SAVE_CALL = /\.\s*(save|saveAndFlush|persist)\s*\(\s*([A-Za-z_$][\w$]*)\s*\)/;
+
+    // Brace depth before each line, so methods can be matched to their bodies.
+    // (Comments were already stripped by stripJavaComments.)
+    let depth = 0;
+    const depthAtLine = lines.map((line) => {
+        const d = depth;
+        for (const ch of line) {
+            if (ch === '{') depth++;
+            else if (ch === '}') depth--;
+        }
+        return d;
+    });
+
+    // Find the @Service class: the annotation line, then the class declaration.
+    // Record the line range and depth of its body.
+    let classLine = -1;
+    let classEnd = -1;
+    let serviceDepth = -1;
+    let sawService = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (/@Service\b/.test(line)) sawService = true;
+        if (sawService && /\bclass\s+\w+/.test(line)) {
+            classLine = i;
+            serviceDepth = depthAtLine[i] + (line.match(/\{/g) || []).length;
+            if (!line.includes('{')) serviceDepth = depthAtLine[i] + 1;
+            for (let j = i + 1; j < lines.length; j++) {
+                if (depthAtLine[j] < serviceDepth) { classEnd = j; break; }
+            }
+            if (classEnd < 0) classEnd = lines.length;
+            break;
+        }
+    }
+    if (classLine < 0) return vulnerabilities;
+
+    // Walk method signatures inside the service class.
+    const SIG = /^\s*(public|protected|private)\s+(?:static\s+)?[\w<>\[\],.? ]+?\s+(\w+)\s*\(([^)]*)\)\s*(?:throws\s+[\w,\s.]+)?\s*\{?\s*$/;
+    for (let i = classLine + 1; i < classEnd; i++) {
+        const line = lines[i];
+        if (depthAtLine[i] !== serviceDepth) continue;
+        const sig = line.match(SIG);
+        if (!sig) continue;
+        const paramsRaw = sig[3].trim();
+        if (!paramsRaw) continue;
+        const paramNames = paramsRaw.split(',').map((p) => {
+            const tokens = p.trim().split(/\s+/);
+            return tokens[tokens.length - 1];
+        }).filter((n) => /^[A-Za-z_$][\w$]*$/.test(n));
+        if (paramNames.length === 0) continue;
+        if (/@Valid\b/.test(line)) continue;
+
+        // Find the method body: from the signature line until the braces balance.
+        let bodyDepth = 0;
+        let opened = false;
+        let bodyEnd = -1;
+        for (let j = i; j < lines.length; j++) {
+            for (const ch of lines[j]) {
+                if (ch === '{') { bodyDepth++; opened = true; }
+                else if (ch === '}') bodyDepth--;
+            }
+            if (opened && bodyDepth === 0) { bodyEnd = j; break; }
+        }
+        if (bodyEnd < 0) continue;
+
+        // Find a save/persist call in the body whose argument is a parameter.
+        // No "used elsewhere" guard: checking one field (a null check, hashing
+        // the password) does not filter the rest of the fields, so it does not
+        // exempt the method. The safe patterns (DTO mapping, allowlist copy)
+        // are excluded by construction — their save argument is a local, not
+        // the parameter.
+        for (let k = i; k <= bodyEnd; k++) {
+            const m = lines[k].match(SAVE_CALL);
+            if (!m) continue;
+            const arg = m[2];
+            if (!paramNames.includes(arg)) continue;
+            vulnerabilities.push({
+                type: 'Unfiltered Service-Layer Persistence',
+                severity: 'MEDIUM',
+                description: `Service method passes parameter '${arg}' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.`,
+                line: k + 1,
+                recommendation: 'Validate or filter the entity\'s fields before persisting it, or map from a DTO that exposes only safe fields.',
+                file: filename,
+                cwe: 'CWE-915'
+            });
+            break; // one finding per method
+        }
+    }
 
     return vulnerabilities;
 }

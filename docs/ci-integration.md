@@ -49,7 +49,7 @@ name: springsecure-report path: springsecure.json
 `tests/cli.test.js` covers the exit codes: test (b) (`--fail-on-high`
 exits 1 with a HIGH finding and 0 without) and test (c)
 (`--fail-on-medium` exits 1 with MEDIUM+ and 0 on clean). Run them with
-`node --test "tests/*.test.js"` (8 tests, all passing at v1.0.1).
+`node --test "tests/*.test.js"` (11 tests, all passing at v1.0.2).
 
 ## Isolated runs
 

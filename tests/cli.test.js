@@ -158,3 +158,44 @@ test('(f) dynamic scanner marks a failed request inconclusive', async () => {
     assert.equal(results.length, 1);
     assert.equal(results[0].dynamicValidation.outcome, 'inconclusive');
 });
+
+// (g) R-06: unfiltered service-layer persistence
+test('(g) R-06 flags service methods that pass a parameter straight to save()', async () => {
+    const report = await scanJson(path.join(FIXTURES, 'vulnerable'));
+    const r06 = report.vulnerabilities.filter(
+        (v) => v.type === 'Unfiltered Service-Layer Persistence');
+    // Two: the pure pass-through, and the method that checks one field first —
+    // checking one field does not filter the rest.
+    assert.equal(r06.length, 2, `expected 2 R-06 findings, got ${JSON.stringify(report.vulnerabilities)}`);
+    assert.ok(r06.every((v) => v.severity === 'MEDIUM'));
+    // Both findings are reported at their save lines in the fixture.
+    const fixture = fs.readFileSync(path.join(FIXTURES, 'vulnerable', 'OrderService.java'), 'utf-8');
+    const saveLines = fixture.split('\n')
+        .map((l, idx) => (l.includes('orderRepository.save(') ? idx + 1 : -1))
+        .filter((n) => n > 0);
+    assert.deepEqual(r06.map((v) => v.line).sort(), saveLines);
+    assert.ok(r06.every((v) => /OrderService\.java$/.test(v.file)));
+});
+
+test('(g) R-06 does not fire on DTO-mapped or allowlist-copied saves in the clean fixture', async () => {
+    const report = await scanJson(path.join(FIXTURES, 'clean'));
+    const r06 = report.vulnerabilities.filter(
+        (v) => v.type === 'Unfiltered Service-Layer Persistence');
+    assert.equal(r06.length, 0, `expected 0 R-06 findings, got ${JSON.stringify(r06)}`);
+});
+
+test('(g) R-06 is MEDIUM: it trips --fail-on-medium but not --fail-on-high on its own', async () => {
+    // A directory holding only the vulnerable service file, so R-06 is the
+    // only finding present.
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'springsecure-r06-'));
+    fs.copyFileSync(path.join(FIXTURES, 'vulnerable', 'OrderService.java'),
+        path.join(tmp, 'OrderService.java'));
+    try {
+        const high = await runCli([tmp, '--fail-on-high']);
+        assert.equal(high.code, 0, `expected exit 0, got ${high.code}: ${high.stdout}`);
+        const medium = await runCli([tmp, '--fail-on-medium']);
+        assert.equal(medium.code, 1, `expected exit 1, got ${medium.code}: ${medium.stdout}`);
+    } finally {
+        fs.rmSync(tmp, { recursive: true, force: true });
+    }
+});

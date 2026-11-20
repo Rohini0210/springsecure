@@ -1,12 +1,48 @@
 {
-  "timestamp": "2026-11-13T01:13:13.936Z",
+  "timestamp": "2026-11-20T01:33:30.539Z",
   "summary": {
     "high": 5,
-    "medium": 0,
+    "medium": 3,
     "low": 0,
-    "total": 5
+    "total": 8
   },
   "vulnerabilities": [
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'recipient' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 43,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/notification-service/src/main/java/com/piggymetrics/notification/service/RecipientServiceImpl.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'recipient' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 71,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/notification-service/src/main/java/com/piggymetrics/notification/service/RecipientServiceImpl.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Direct Entity Binding in Controller",
+      "severity": "HIGH",
+      "description": "Controller method binds @RequestBody directly to entity class 'Account' without DTO layer. This allows clients to modify any field.",
+      "line": 33,
+      "recommendation": "Create a AccountDTO class with only modifiable fields. Map DTO to entity in service layer.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/statistics-service/src/main/java/com/piggymetrics/statistics/controller/StatisticsController.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'user' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 33,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/auth-service/src/main/java/com/piggymetrics/auth/service/UserServiceImpl.java",
+      "cwe": "CWE-915"
+    },
     {
       "type": "Sensitive Field Without @JsonIgnore",
       "severity": "HIGH",
@@ -41,15 +77,6 @@
       "line": 36,
       "recommendation": "Create a UserDTO class with only modifiable fields. Map DTO to entity in service layer.",
       "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/account-service/src/main/java/com/piggymetrics/account/controller/AccountController.java",
-      "cwe": "CWE-915"
-    },
-    {
-      "type": "Direct Entity Binding in Controller",
-      "severity": "HIGH",
-      "description": "Controller method binds @RequestBody directly to entity class 'Account' without DTO layer. This allows clients to modify any field.",
-      "line": 33,
-      "recommendation": "Create a AccountDTO class with only modifiable fields. Map DTO to entity in service layer.",
-      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/piggymetrics/statistics-service/src/main/java/com/piggymetrics/statistics/controller/StatisticsController.java",
       "cwe": "CWE-915"
     }
   ]

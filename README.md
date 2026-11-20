@@ -1,4 +1,4 @@
-# SpringSecure CLI — v1.0.1
+# SpringSecure CLI — v1.0.2
 
 A command-line tool for detecting mass assignment vulnerabilities in Spring Boot applications.
 
@@ -144,7 +144,7 @@ extra dependencies): static scan of a vulnerable and a clean fixture,
 ## Detected Vulnerabilities — the 7-rule library
 
 These seven rules (R-01–R-07) are the rule library described in Table 3 of
-the paper. R-06 is specified but not implemented in v1.0.1 (see Limitations).
+the paper. R-06 is implemented in v1.0.2 (see below).
 
 ### HIGH Severity
 
@@ -171,8 +171,12 @@ the paper. R-06 is specified but not implemented in v1.0.1 (see Limitations).
      `@ManyToOne`, `@OneToOne`)
    - Can lead to unintended data modifications
 
-6. **R-06 Copy-based service-layer update** — specified in Table 3, **not
-   implemented** in v1.0.1 (see Limitations)
+6. **R-06 Unfiltered service-layer persistence** (CWE-915) — implemented in
+   v1.0.2: a `@Service` method that passes a parameter directly to a repository
+   `save`, `saveAndFlush` or `persist` call is reported at the save line
+   (unless the parameter carries `@Valid`). The rule does not trace the entity
+   back to a `@RequestBody`, so a service-layer finding is never linked to an
+   endpoint or dynamically confirmed (see Limitations)
 
 7. **R-07 Unsafe Jackson Configuration** (CWE-915)
    - `fail-on-unknown-properties: false` in configuration
@@ -254,13 +258,14 @@ Summary:
 ───────────────────────────────────────────────────────
 ```
 
-## Limitations (v1.0.1)
+## Limitations (v1.0.2)
 
-- **R-06 is specified in Table 3 but not implemented in v1.0.1.** The tool
-  performs no copy-based service-layer update detection (`copyProperties` /
-  `BeanUtils` or equivalent); R-06 findings are therefore never reported.
-  Service-layer vulnerabilities that do not surface as controller-level
-  R-01 findings are outside the current detection scope.
+- **R-06 cannot link a service-layer finding to an endpoint.** The rule
+  reports a service method that passes its parameter to a save call, but it
+  does not trace the entity back to a `@RequestBody`: there is no call graph
+  from controller entry points through service and repository layers, so
+  R-06 findings are never dynamically confirmed and never reach the CI/CD
+  gating condition.
 - **Dynamic verification is response-reflection based only.** The dynamic
   scanner does not parse OpenAPI specifications, does not perform a
   follow-up GET oracle, and does not compute the divergence measure. A

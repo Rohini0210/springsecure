@@ -1,27 +1,54 @@
 {
-  "timestamp": "2026-11-13T01:13:01.741Z",
+  "timestamp": "2026-11-20T01:33:27.496Z",
   "summary": {
     "high": 5,
-    "medium": 10,
-    "low": 1,
-    "total": 16
+    "medium": 14,
+    "low": 0,
+    "total": 19
   },
   "vulnerabilities": [
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'p' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 19,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/service/WarehouseService.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'p' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 19,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/service/SupplierService.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'p' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 18,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/service/ProductService.java",
+      "cwe": "CWE-915"
+    },
+    {
+      "type": "Unfiltered Service-Layer Persistence",
+      "severity": "MEDIUM",
+      "description": "Service method passes parameter 'p' directly to a repository save/persist call without validation or field filtering, so any field the caller supplied is persisted as-is.",
+      "line": 19,
+      "recommendation": "Validate or filter the entity's fields before persisting it, or map from a DTO that exposes only safe fields.",
+      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/service/OrderService.java",
+      "cwe": "CWE-915"
+    },
     {
       "type": "Lombok @Data on Entity",
       "severity": "HIGH",
       "description": "Entity class 'User' uses @Data annotation which generates public setters for all fields, including sensitive ones like roles, permissions, and internal state.",
       "line": 27,
       "recommendation": "Replace @Data with @Getter and use @Setter only on safe fields. Consider using DTOs for API boundaries.",
-      "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/User.java",
-      "cwe": "CWE-915"
-    },
-    {
-      "type": "Lombok @AllArgsConstructor on Entity",
-      "severity": "LOW",
-      "description": "Entity class 'User' uses @AllArgsConstructor which may be exploited in combination with other patterns.",
-      "line": 27,
-      "recommendation": "Consider using @RequiredArgsConstructor or custom constructors.",
       "file": "/home/hatch/workspace/goals/softwarex-manuscript-round-2-revision/hidden_files/measurements/jwt-inv/spring-security-jwt-main/src/main/java/com/iamneo/security/entity/User.java",
       "cwe": "CWE-915"
     },

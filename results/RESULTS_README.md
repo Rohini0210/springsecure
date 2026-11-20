@@ -6,10 +6,8 @@ to be. Read this note before using them.
 
 ## Provenance
 
-- Tool: SpringSecure at commit `7a5170c` plus `springsecure_parser_fixes.patch`
-  (the parser patch). This is the patched tool **before** release v1.0.1
-  removed the undocumented 8th rule (see below).
-- Run on: 13 November 2026, Linux container, Node.js v24.22.1, 1.5 vCPU.
+- Tool: SpringSecure release **v1.0.2** (R-06 implemented; 11 tests passing).
+- Run on: 19 November 2026, Linux container, Node.js v24.22.1, 1.5 vCPU.
   The i7/Ubuntu reference environment (Node.js v22.22.2) is different.
 - Command per file (from `SpringSecure_Measured_Data.md` §4):
   `node cli.js <project> -f json -o <project>.json`
@@ -20,13 +18,15 @@ to be. Read this note before using them.
 ## What matches the paper, and what does not
 
 Counts match the reference measurements (`SpringSecure_Measured_Data.md`
-§3) exactly:
+§3) except for the v1.0.2 changes below (four R-06 findings added on
+JWT-INV, three on piggymetrics, and the undocumented 8th rule already
+removed in v1.0.1):
 
 | Project | Findings in this JSON | R-01 candidates | Reference (i7) |
 |---|---|---|---|
-| JWT-INV | 16 | 2 | 16 / 2 |
+| JWT-INV | 19 | 2 | 16 / 2 |
 | spring-petclinic | 2 | 0 | 2 / 0 |
-| piggymetrics | 5 | 4 | 5 / 4 |
+| piggymetrics | 8 | 4 | 5 / 4 |
 
 Absolute scan times and peak memory do **not** match Table 6. On this
 container the scans ran about 2× slower and used about 1.4× more memory
@@ -40,13 +40,21 @@ times and memory figures in Table 6 were measured by the harness around
 the tool (mean of 3 warm runs; peak RSS from 2 further runs), not read
 out of these files.
 
-## The 16th JWT-INV finding
+## What changed in v1.0.2
 
-`jwt-inv.json` lists 16 findings, including one LOW finding
-(Lombok `@AllArgsConstructor` on `User.java:27`). That is the undocumented
-8th rule, which release v1.0.1 removed. The paper's accuracy analysis
-(§5.4, Table 5) counts 15 reported findings, excluding it. The JSON is
-kept as-run; do not "correct" it to 15.
+`jwt-inv.json` now lists 19 findings: the 15 reported by v1.0.1 plus the
+four R-06 instances (OrderService:19, ProductService:18, SupplierService:19,
+WarehouseService:19), all matched against the reference set in the paper's
+Table 5. `piggymetrics.json` now lists 8 findings (was 5): three R-06
+instances (UserServiceImpl:33, RecipientServiceImpl:43, :71).
+`spring-petclinic.json` is unchanged at 2 findings.
+
+The previous files (JWT-INV 16 findings, including the undocumented 8th
+rule — Lombok `@AllArgsConstructor` on `User.java:27` — which v1.0.1
+removed) are superseded by this re-run. The paper's accuracy analysis
+(§5.4, Table 5) counts 19 reported findings for JWT-INV: 18 true
+positives, 1 false positive, 3 false negatives (precision 0.95,
+recall 0.86, F1 0.90).
 
 ## File paths inside the JSONs
 

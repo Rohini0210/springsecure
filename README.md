@@ -4,15 +4,15 @@ A command-line tool for detecting mass assignment vulnerabilities in Spring Boot
 
 ## Features
 
-- 🔍 **AST-Based Analysis** - Uses java-parser for accurate Abstract Syntax Tree parsing
-- 🎯 **7-Rule Library (R-01–R-07)** - Detects mass assignment vulnerabilities with CWE classifications, matching Table 3 of the accompanying paper
-- ⚡ **Dynamic Verification** - Optionally tests R-01 findings against a running instance (`--url`); response-reflection based only (see below)
-- 📊 **Multiple Output Formats** - Console, JSON, and text reports
-- 🌐 **GitHub Repository Scanning** - Scan any public GitHub repository automatically
-- 🚀 **Fast Scanning** - Recursively scan entire projects
-- ⚡ **CI/CD Ready** - Exit codes for build pipeline integration
-- 📝 **Detailed Recommendations** - Actionable fix instructions for each vulnerability
-- 🔄 **Smart Fallback** - Automatic fallback to regex-based detection if AST parsing fails
+-  **AST-Based Analysis** - Uses java-parser for accurate Abstract Syntax Tree parsing
+-  **7-Rule Library (R-01–R-07)** - Detects mass assignment vulnerabilities with CWE classifications, matching Table 3 of the accompanying paper
+-  **Dynamic Verification** - Optionally tests R-01 findings against a running instance (`--url`); response-reflection based only (see below)
+-  **Multiple Output Formats** - Console, JSON, and text reports
+-  **GitHub Repository Scanning** - Scan any public GitHub repository automatically
+-  **Fast Scanning** - Recursively scan entire projects
+-  **CI/CD Ready** - Exit codes for build pipeline integration
+-  **Detailed Recommendations** - Actionable fix instructions for each vulnerability
+-  **Smart Fallback** - Automatic fallback to regex-based detection if AST parsing fails
 
 ## Installation
 
@@ -236,11 +236,11 @@ node cli.js ./src --url http://localhost:8080 --json -o security-report.json
   SpringSecure - Mass Assignment Vulnerability Scanner
 ═══════════════════════════════════════════════════════
 
-🔍 Scanning: /path/to/project/src
+ Scanning: /path/to/project/src
 
 Found 15 file(s) to analyze...
 
-📄 src/main/java/com/example/User.java
+ src/main/java/com/example/User.java
    Found 2 issue(s): 1 HIGH 1 MEDIUM
 
    1. HIGH - Lombok @Data Exposure

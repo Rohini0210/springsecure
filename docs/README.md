@@ -3,7 +3,7 @@
 The journal paper (SoftwareX, 10 pages) is short by design. This folder
 preserves the material that was cut from it for length during the Round 2
 revision, so it is not lost. Everything here is copied verbatim from the
-pre-cut manuscript (`Revised_SoftwareX_MAV_R1_Fixed.docx`) or from the tool
+pre-cut manuscript or from the tool
 source in this repository — nothing is reconstructed from memory.
 
 ## Contents
